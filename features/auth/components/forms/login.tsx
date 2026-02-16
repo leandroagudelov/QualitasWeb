@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authService } from "../../services/auth.service";
+import { permissionsService } from "../../services/permissions.service";
 import { loginSchema, LoginSchema } from "../../schemas";
 
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -26,7 +27,6 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -43,20 +43,33 @@ export function LoginForm() {
     try {
       const response = await authService.login(
         { email: values.email, password: values.password },
-        values.tenant,
+        values.tenant || "root",
       );
 
-      console.log("Login exitoso:", response);
-
-      // Guardar sesión en store y cookies
-      if (response.accessToken && response.refreshToken) {
-        login(response.accessToken, response.refreshToken);
-
-        // Redirigir al dashboard (ruta raíz)
-        router.push("/");
-      } else {
+      if (!response?.accessToken || !response?.refreshToken) {
         throw new Error("Respuesta inválida del servidor");
       }
+
+      // Actualizar el store usando getState() para evitar referencias obsoletas
+      const store = useAuthStore.getState();
+      store.login(response.accessToken, response.refreshToken);
+
+      // Cargar permisos antes de redirigir (el dashboard puede depender de ellos)
+      try {
+        store.setLoadingPermissions(true);
+        store.setPermissionError(null);
+        const permissions = await permissionsService.getUserPermissions(response.accessToken);
+        store.setPermissions(permissions || []);
+      } catch (permErr) {
+        console.warn("[AUTH] Permisos no cargados:", permErr);
+        store.setPermissions([]);
+      } finally {
+        store.setLoadingPermissions(false);
+      }
+
+      // Pequeña pausa para que el persist de Zustand escriba en sessionStorage antes de navegar
+      await new Promise((r) => setTimeout(r, 0));
+      router.push("/");
     } catch (err: any) {
       console.error(err);
       setError("Error al iniciar sesión. Por favor verifica tus credenciales.");

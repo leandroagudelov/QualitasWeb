@@ -1,8 +1,39 @@
 /**
  * Permission Constants - Type-safe permission strings
- * Use these constants instead of hardcoded strings to prevent typos
+ * Aligned with backend ClaimValue (e.g. Permissions.Users.View)
  */
 export const PERMISSIONS = {
+  Dashboard: {
+    VIEW: 'Permissions.Dashboard.View',
+  },
+  Users: {
+    VIEW: 'Permissions.Users.View',
+    SEARCH: 'Permissions.Users.Search',
+    CREATE: 'Permissions.Users.Create',
+    UPDATE: 'Permissions.Users.Update',
+    DELETE: 'Permissions.Users.Delete',
+    EXPORT: 'Permissions.Users.Export',
+  },
+  Roles: {
+    VIEW: 'Permissions.Roles.View',
+    CREATE: 'Permissions.Roles.Create',
+    UPDATE: 'Permissions.Roles.Update',
+    DELETE: 'Permissions.Roles.Delete',
+  },
+  RoleClaims: {
+    VIEW: 'Permissions.RoleClaims.View',
+    UPDATE: 'Permissions.RoleClaims.Update',
+  },
+  UserRoles: {
+    VIEW: 'Permissions.UserRoles.View',
+    UPDATE: 'Permissions.UserRoles.Update',
+  },
+  Groups: {
+    VIEW: 'Permissions.Groups.View',
+    CREATE: 'Permissions.Groups.Create',
+    UPDATE: 'Permissions.Groups.Update',
+    DELETE: 'Permissions.Groups.Delete',
+  },
   QUALITAS: {
     FOUNDATION: {
       ORGANIZATIONS: {

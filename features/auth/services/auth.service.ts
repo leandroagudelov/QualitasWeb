@@ -14,7 +14,10 @@ export const authService = {
    * @param tenant Tenant identifier
    * @returns Login response with tokens
    */
-  login: async (credentials: LoginRequest, tenant: string): Promise<LoginResponse> => {
+  login: async (
+    credentials: LoginRequest,
+    tenant: string,
+  ): Promise<LoginResponse> => {
     const { data } = await api.post<LoginResponse>(
       "/api/v1/identity/token/issue",
       credentials,
@@ -22,7 +25,7 @@ export const authService = {
         headers: {
           tenant,
         },
-      }
+      },
     );
 
     return data;
@@ -56,12 +59,12 @@ export const authService = {
           headers: {
             Authorization: undefined,
           },
-        }
+        },
       );
 
       return data;
     } catch (error) {
-      console.error('[AUTH] Token refresh failed:', error);
+      console.error("[AUTH] Token refresh failed:", error);
       return null;
     }
   },
