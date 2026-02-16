@@ -159,11 +159,19 @@ export const usersService = {
    * Cambiar estado del usuario (activar/desactivar)
    * PATCH /api/v1/identity/users/{id}
    */
-  toggleUserStatus: async (userId: string, activate: boolean): Promise<void> => {
-    await api.patch(`/api/v1/identity/users/${userId}`, {
-      activateUser: activate,
-      userId: null,
-    } as ToggleUserStatusRequest);
+  toggleUserStatus: async (
+    userId: string,
+    activate: boolean,
+    auth?: AuthHeaders
+  ): Promise<void> => {
+    await api.patch(
+      `/api/v1/identity/users/${userId}`,
+      {
+        activateUser: activate,
+        userId: null,
+      } as ToggleUserStatusRequest,
+      { ...(authHeaders(auth) && { headers: authHeaders(auth) }) }
+    );
   },
 
   deleteUser: async (userId: string, auth?: AuthHeaders): Promise<void> => {

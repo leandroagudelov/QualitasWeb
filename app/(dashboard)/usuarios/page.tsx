@@ -57,6 +57,7 @@ export default function UsuariosPage() {
   const [editRoleIds, setEditRoleIds] = useState<string[]>([]);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
+  const [editIsActive, setEditIsActive] = useState<boolean | null>(null);
 
   // Eliminar
   const [deleteTarget, setDeleteTarget] = useState<{ id: string } | null>(null);
@@ -123,6 +124,7 @@ export default function UsuariosPage() {
     const id = user.id ?? "";
     if (!id || !auth) return;
     setEditUser(user);
+    setEditIsActive(user.isActive);
     setEditForm({
       id,
       firstName: user.firstName ?? "",
@@ -165,6 +167,9 @@ export default function UsuariosPage() {
         },
         auth
       );
+      if (editIsActive !== null && editIsActive !== editUser.isActive) {
+        await usersService.toggleUserStatus(editUser.id, editIsActive, auth);
+      }
       setEditOpen(false);
       setEditUser(null);
       const res = await usersService.searchUsers(
@@ -319,19 +324,37 @@ export default function UsuariosPage() {
                 <Input
                   type="email"
                   value={createForm.email}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateForm((f) => {
+                      const email = e.target.value;
+                      // Si no hay userName, sugerir uno a partir del email (solo letras y números)
+                      const shouldSuggestUserName = !f.userName || f.userName.trim().length === 0;
+                      return {
+                        ...f,
+                        email,
+                        userName: shouldSuggestUserName
+                          ? (email.split("@")[0] || "").replace(/[^a-zA-Z0-9]/g, "")
+                          : f.userName,
+                      };
+                    })
+                  }
                   required
                   placeholder="email@ejemplo.com"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm text-slate-600 dark:text-slate-400">Usuario</label>
+                <label className="mb-1 block text-sm text-slate-600 dark:text-slate-400">
+                  Usuario (solo letras y números, sin espacios)
+                </label>
                 <Input
                   value={createForm.userName}
                   onChange={(e) => setCreateForm((f) => ({ ...f, userName: e.target.value }))}
                   required
-                  placeholder="nombre.usuario"
+                  placeholder="santiagosb"
                 />
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Este identificador no puede tener espacios ni caracteres especiales.
+                </p>
               </div>
               <div>
                 <label className="mb-1 block text-sm text-slate-600 dark:text-slate-400">Contraseña (mín. 10 caracteres)</label>
@@ -444,6 +467,20 @@ export default function UsuariosPage() {
                   ))}
                 </div>
               </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-slate-600 dark:text-slate-400">Estado</span>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={!!editIsActive}
+                    onChange={(e) => setEditIsActive(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    {editIsActive ? "Activo" : "Inactivo"}
+                  </span>
+                </label>
+              </div>
               {editError && <p className="text-sm text-red-600 dark:text-red-400">{editError}</p>}
               <div className="flex gap-2 pt-2">
                 <Button type="submit" disabled={editLoading} className="flex-1">
@@ -529,6 +566,7 @@ export default function UsuariosPage() {
                           >
                             <Pencil className="size-4" />
                           </Button>
+                          {/* El estado (activo/inactivo) ahora se gestiona dentro del modal de edición */}
                           <Button
                             type="button"
                             variant="ghost"
