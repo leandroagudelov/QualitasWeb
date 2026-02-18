@@ -1,0 +1,25 @@
+{
+  "routes": [
+    {
+      "route": "/.next/static/*",
+      "serve": "/.next/static/*",
+      "statusCode": 200
+    },
+    {
+      "route": "/api/*",
+      "serve": "/api/*",
+      "statusCode": 200
+    },
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "missionControl": {
+    "enable": false
+  }
+}
